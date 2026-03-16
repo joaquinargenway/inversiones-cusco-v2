@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Informe de Inversiones</title>
+<title id="page-title">Informe de Inversiones</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -101,14 +101,24 @@ input:focus,select:focus{outline:none;border-color:var(--blue);}
 .toggle-btn{font-size:12px;padding:4px 12px;border:none;border-radius:6px;background:none;cursor:pointer;color:var(--text2);font-family:inherit;transition:all .15s;white-space:nowrap;}
 .toggle-btn.active{background:var(--bg);color:var(--text);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.1);}
 .usd-calc{font-size:12px;color:var(--green);font-variant-numeric:tabular-nums;font-weight:500;}
+/* Titulo editable */
+.titulo-wrap{display:flex;align-items:center;gap:8px;}
+#titulo-display{font-size:24px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:border-color .2s;}
+#titulo-display:hover{border-bottom:2px solid var(--border2);}
+#titulo-input{font-size:24px;font-weight:600;border:none;border-bottom:2px solid var(--blue);background:transparent;color:var(--text);padding:0;width:320px;font-family:inherit;outline:none;display:none;}
+.titulo-hint{font-size:11px;color:var(--text3);margin-top:2px;}
 </style>
 </head>
 <body>
 <div class="page">
   <div class="header">
     <div>
-      <h1>Informe de inversiones</h1>
+      <div class="titulo-wrap">
+        <h1 id="titulo-display" onclick="editarTitulo()" title="Clic para editar el título">Informe de inversiones</h1>
+        <input type="text" id="titulo-input" placeholder="Nombre del informe" onblur="guardarTitulo()" onkeydown="if(event.key==='Enter')guardarTitulo()">
+      </div>
       <p id="fecha-header">—</p>
+      <p class="titulo-hint">Hacé clic en el título para editarlo</p>
     </div>
     <button class="btn-add" onclick="window.print()" style="font-size:12px;padding:6px 14px">Imprimir / PDF ↗</button>
   </div>
@@ -196,6 +206,15 @@ input:focus,select:focus{outline:none;border-color:var(--blue);}
   <!-- EDITAR -->
   <div id="tab-editar" class="sh">
     <div class="card">
+      <div class="card-title">Nombre del informe</div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <input type="text" id="nombre-informe-input" placeholder="Ej: Portafolio 2025" style="max-width:400px">
+        <button class="btn-add" onclick="aplicarNombre()">Aplicar</button>
+      </div>
+      <p style="font-size:12px;color:var(--text2);margin-top:8px">También podés hacer clic directamente sobre el título arriba para editarlo.</p>
+    </div>
+
+    <div class="card">
       <div class="card-title">Tipos de cambio actuales ARS → USD</div>
       <div class="tc-grid">
         <div>
@@ -237,9 +256,7 @@ input:focus,select:focus{outline:none;border-color:var(--blue);}
 
     <div class="card">
       <div class="card-title">Historial mensual</div>
-      <div class="hist-info">
-        Por cada período podés ingresar el valor <strong>en USD</strong>, <strong>en ARS</strong>, o los dos. Si cargás en ARS con el TC de ese momento, la columna verde muestra el equivalente en USD calculado automáticamente.
-      </div>
+      <div class="hist-info">Por cada período podés ingresar el valor <strong>en USD</strong>, <strong>en ARS</strong>, o los dos. Si cargás en ARS con el TC de ese momento, la columna verde muestra el equivalente en USD calculado automáticamente.</div>
       <div class="form-row hist-row form-hdr" style="margin-bottom:4px">
         <span>Mes / Período</span><span>Valor USD</span><span>Valor ARS</span><span>TC del momento</span><span>Equiv. USD</span><span></span>
       </div>
@@ -262,6 +279,7 @@ const COL=['#378ADD','#1D9E75','#EF9F27','#D4537E','#7F77DD','#D85A30','#639922'
 let filtro='all', histView='usd';
 
 let S={
+  titulo:'Informe de inversiones',
   tcA:1200,tcPru:1250,
   liqA:[{desc:'Cuenta corriente',moneda:'ARS',monto:1500000},{desc:'Cash USD',moneda:'USD',monto:3000}],
   liqPru:[{desc:'Fondo común',moneda:'ARS',monto:800000},{desc:'Cash USD',moneda:'USD',monto:2000}],
@@ -284,6 +302,39 @@ let S={
     {mes:'Mar 2025',valorUSD:36200,valorARS:0,tc:0}
   ]
 };
+
+// --- Título editable ---
+function editarTitulo(){
+  const d=document.getElementById('titulo-display');
+  const inp=document.getElementById('titulo-input');
+  inp.value=d.textContent;
+  d.style.display='none';
+  inp.style.display='block';
+  inp.focus();inp.select();
+}
+function guardarTitulo(){
+  const d=document.getElementById('titulo-display');
+  const inp=document.getElementById('titulo-input');
+  const nuevo=inp.value.trim()||'Informe de inversiones';
+  S.titulo=nuevo;
+  d.textContent=nuevo;
+  document.title=nuevo;
+  inp.style.display='none';
+  d.style.display='';
+  guardarLocal();
+}
+function aplicarNombre(){
+  const v=document.getElementById('nombre-informe-input').value.trim();
+  if(!v)return;
+  S.titulo=v;
+  document.getElementById('titulo-display').textContent=v;
+  document.title=v;
+  guardarLocal();
+}
+function renderTitulo(){
+  document.getElementById('titulo-display').textContent=S.titulo||'Informe de inversiones';
+  document.title=S.titulo||'Informe de inversiones';
+}
 
 function histUSD(h){if(h.valorUSD>0)return h.valorUSD;if(h.valorARS>0&&h.tc>0)return h.valorARS/h.tc;return 0;}
 function histARS(h){if(h.valorARS>0)return h.valorARS;if(h.valorUSD>0&&h.tc>0)return h.valorUSD*h.tc;return 0;}
@@ -326,6 +377,13 @@ function getLiqs(){
 
 let CH={};
 function dC(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
+function mkDonut(id,labels,data,colors){
+  dC(id);
+  CH[id]=new Chart(document.getElementById(id),{
+    type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:0,hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'66%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fUSD(ctx.raw)}}}}
+  });
+}
 
 function renderMetrics(){
   const m=calcAll(),s=m.ganancia>=0;
@@ -335,15 +393,6 @@ function renderMetrics(){
     <div class="metric"><div class="metric-label">Liquidez total</div><div class="metric-value">${fUSD(m.liqUSD)}</div><div class="metric-sub" style="color:var(--text2)">Equiv. USD</div></div>
     <div class="metric"><div class="metric-label">Rendimiento</div><div class="metric-value ${m.rend>=0?'pos':'neg'}">${m.rend>=0?'+':''}${m.rend.toFixed(1)}%</div><div class="metric-sub" style="color:var(--text2)">Sobre capital invertido</div></div>`;
 }
-
-function mkDonut(id,labels,data,colors){
-  dC(id);
-  CH[id]=new Chart(document.getElementById(id),{
-    type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:0,hoverOffset:4}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'66%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fUSD(ctx.raw)}}}}
-  });
-}
-
 function renderFondos(){
   const m=calcAll(),d=[m.actUSD,m.liqUSD],l=['Invertido','Liquidez'],c=['#378ADD','#9FE1CB'];
   document.getElementById('leg-fondos').innerHTML=l.map((x,i)=>`<div class="legend-item"><div class="legend-dot" style="background:${c[i]}"></div>${x}: ${fUSD(d[i])}</div>`).join('');
@@ -376,139 +425,78 @@ function renderTablaPosicion(){
   }
   document.getElementById('tabla-posicion').innerHTML=html+'</tbody></table>';
 }
-
 function setHistView(v){
   histView=v;
   ['usd','ars','ambos'].forEach(x=>document.getElementById('toggle-'+x).classList.toggle('active',x===v));
   renderHistorico();
 }
-
 function renderHistorico(){
   const labels=S.historico.map(h=>h.mes);
   const dataUSD=S.historico.map(h=>histUSD(h));
   const dataARS=S.historico.map(h=>histARS(h));
   dC('chart-historico');
   let datasets=[];
-  if(histView==='usd'||histView==='ambos'){
-    datasets.push({label:'Portafolio USD',data:dataUSD,borderColor:'#378ADD',backgroundColor:'rgba(55,138,221,.07)',fill:histView==='usd',tension:.4,pointRadius:4,pointBackgroundColor:'#378ADD',borderWidth:2,yAxisID:histView==='ambos'?'y':'y'});
-  }
-  if(histView==='ars'||histView==='ambos'){
-    datasets.push({label:'Portafolio ARS',data:dataARS,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,.07)',fill:histView==='ars',tension:.4,pointRadius:4,pointBackgroundColor:'#1D9E75',borderWidth:2,yAxisID:histView==='ambos'?'y1':'y'});
-  }
-  const scales=histView==='ambos'?{
-    y:{position:'left',ticks:{callback:v=>fUSD(v)},grid:{color:'rgba(128,128,128,.08)'}},
-    y1:{position:'right',ticks:{callback:v=>fARS(v)},grid:{display:false}},
-    x:{grid:{display:false}}
-  }:{
-    y:{ticks:{callback:histView==='ars'?v=>fARS(v):v=>fUSD(v)},grid:{color:'rgba(128,128,128,.08)'}},
-    x:{grid:{display:false}}
-  };
-  CH['chart-historico']=new Chart(document.getElementById('chart-historico'),{
-    type:'line',data:{labels,datasets},
-    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:histView==='ambos'},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+(ctx.dataset.yAxisID==='y1'?fARS(ctx.raw):fUSD(ctx.raw))}}},scales}
-  });
-
-  // Tabla historica detallada
+  if(histView==='usd'||histView==='ambos')datasets.push({label:'Portafolio USD',data:dataUSD,borderColor:'#378ADD',backgroundColor:'rgba(55,138,221,.07)',fill:histView==='usd',tension:.4,pointRadius:4,pointBackgroundColor:'#378ADD',borderWidth:2,yAxisID:histView==='ambos'?'y':'y'});
+  if(histView==='ars'||histView==='ambos')datasets.push({label:'Portafolio ARS',data:dataARS,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,.07)',fill:histView==='ars',tension:.4,pointRadius:4,pointBackgroundColor:'#1D9E75',borderWidth:2,yAxisID:histView==='ambos'?'y1':'y'});
+  const scales=histView==='ambos'?{y:{position:'left',ticks:{callback:v=>fUSD(v)},grid:{color:'rgba(128,128,128,.08)'}},y1:{position:'right',ticks:{callback:v=>fARS(v)},grid:{display:false}},x:{grid:{display:false}}}:{y:{ticks:{callback:histView==='ars'?v=>fARS(v):v=>fUSD(v)},grid:{color:'rgba(128,128,128,.08)'}},x:{grid:{display:false}}};
+  CH['chart-historico']=new Chart(document.getElementById('chart-historico'),{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:histView==='ambos'},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+(ctx.dataset.yAxisID==='y1'?fARS(ctx.raw):fUSD(ctx.raw))}}},scales}});
   let trows=S.historico.map(h=>{
     const usd=histUSD(h),ars=histARS(h);
-    const fuenteUSD=h.valorUSD>0,fuenteARS=h.valorARS>0&&h.tc>0;
     const tcStr=h.tc>0?'$ '+fmt(h.tc):'—';
-    const equivCell=fuenteARS&&!h.valorUSD?`<span class="usd-calc">${fUSD(usd)}</span>`:`<span style="color:var(--text3)">—</span>`;
-    const fuenteBadge=h.valorUSD>0?'<span class="badge badge-usd">USD</span>':'<span class="badge badge-ars">ARS</span>';
-    return`<tr>
-      <td class="td-name">${h.mes}</td>
-      <td>${fuenteBadge}</td>
-      <td>${usd>0?fUSD(usd):'—'}</td>
-      <td>${ars>0?fARS(ars):'—'}</td>
-      <td style="color:var(--text2)">${tcStr}</td>
-      <td>${equivCell}</td>
-    </tr>`;
+    const equivCell=h.valorARS>0&&h.tc>0&&!h.valorUSD?`<span class="usd-calc">${fUSD(usd)}</span>`:`<span style="color:var(--text3)">—</span>`;
+    const badge=h.valorUSD>0?'<span class="badge badge-usd">USD</span>':'<span class="badge badge-ars">ARS</span>';
+    return`<tr><td class="td-name">${h.mes}</td><td>${badge}</td><td>${usd>0?fUSD(usd):'—'}</td><td>${ars>0?fARS(ars):'—'}</td><td style="color:var(--text2)">${tcStr}</td><td>${equivCell}</td></tr>`;
   }).join('');
   document.getElementById('tabla-historico').innerHTML=`<table><thead><tr><th>Período</th><th>Fuente</th><th>Valor USD</th><th>Valor ARS</th><th>TC del momento</th><th>Equiv. USD calculado</th></tr></thead><tbody>${trows}</tbody></table>`;
-
-  // Chart activos
   const all=[...S.activosA.map(a=>({...a,caja:'a'})),...S.activosPru.map(a=>({...a,caja:'pru'}))];
   document.getElementById('wrap-activos').style.height=Math.max(200,all.length*38+80)+'px';
   dC('chart-activos');
-  CH['chart-activos']=new Chart(document.getElementById('chart-activos'),{
-    type:'bar',data:{labels:all.map(a=>a.nombre),datasets:[{data:all.map(a=>a.rend),backgroundColor:all.map(a=>a.rend>=0?'#1D9E75':'#E24B4A'),borderRadius:4,borderSkipped:false}]},
-    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw.toFixed(1)+'%'}}},scales:{x:{ticks:{callback:v=>v+'%'},grid:{color:'rgba(128,128,128,.08)'}},y:{grid:{display:false}}}}
-  });
+  CH['chart-activos']=new Chart(document.getElementById('chart-activos'),{type:'bar',data:{labels:all.map(a=>a.nombre),datasets:[{data:all.map(a=>a.rend),backgroundColor:all.map(a=>a.rend>=0?'#1D9E75':'#E24B4A'),borderRadius:4,borderSkipped:false}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw.toFixed(1)+'%'}}},scales:{x:{ticks:{callback:v=>v+'%'},grid:{color:'rgba(128,128,128,.08)'}},y:{grid:{display:false}}}}});
 }
-
 function renderCartera(){
   const acts=getActivos(),tot=acts.reduce((s,a)=>s+toUSD(a.actual,a.moneda,a.caja),0);
   const pcts=acts.map(a=>tot>0?toUSD(a.actual,a.moneda,a.caja)/tot*100:0);
   document.getElementById('leg-comp').innerHTML=acts.map((a,i)=>`<div class="legend-item"><div class="legend-dot" style="background:${COL[i%COL.length]}"></div>${a.nombre} ${pcts[i].toFixed(0)}%</div>`).join('');
   dC('chart-comp');
-  CH['chart-comp']=new Chart(document.getElementById('chart-comp'),{
-    type:'doughnut',data:{labels:acts.map(a=>a.nombre),datasets:[{data:pcts,backgroundColor:COL,borderWidth:0,hoverOffset:4}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw.toFixed(1)+'%'}}}}
-  });
+  CH['chart-comp']=new Chart(document.getElementById('chart-comp'),{type:'doughnut',data:{labels:acts.map(a=>a.nombre),datasets:[{data:pcts,backgroundColor:COL,borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw.toFixed(1)+'%'}}}}});
   dC('chart-dist');
-  CH['chart-dist']=new Chart(document.getElementById('chart-dist'),{
-    type:'bar',data:{labels:acts.map(a=>a.nombre),datasets:[{data:pcts,backgroundColor:COL,borderRadius:4}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw.toFixed(1)+'%'}}},scales:{y:{max:100,ticks:{callback:v=>v+'%'},grid:{color:'rgba(128,128,128,.08)'}},x:{grid:{display:false}}}}
-  });
+  CH['chart-dist']=new Chart(document.getElementById('chart-dist'),{type:'bar',data:{labels:acts.map(a=>a.nombre),datasets:[{data:pcts,backgroundColor:COL,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw.toFixed(1)+'%'}}},scales:{y:{max:100,ticks:{callback:v=>v+'%'},grid:{color:'rgba(128,128,128,.08)'}},x:{grid:{display:false}}}}});
   let rows=acts.map((a,i)=>`<tr><td><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${COL[i%COL.length]};margin-right:6px"></span><span class="td-name">${a.nombre}</span></td><td><span class="badge badge-caja-${a.caja}">${a.caja==='a'?'Caja A':'Caja Pru'}</span></td><td><span class="badge badge-${a.moneda.toLowerCase()}">${a.moneda}</span></td><td style="color:var(--text2)">${a.tipo||'—'}</td><td>${fMonto(a.invertido,a.moneda)}</td><td>${fMonto(a.actual,a.moneda)}</td><td class="${a.rend>=0?'pos':'neg'}">${a.rend>=0?'+':''}${a.rend.toFixed(1)}%</td><td>${pcts[i].toFixed(1)}%</td></tr>`).join('');
   document.getElementById('tabla-detalle').innerHTML=`<table><thead><tr><th>Activo</th><th>Caja</th><th>Moneda</th><th>Tipo</th><th>Invertido</th><th>Actual</th><th>Rend.</th><th>% Cartera</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
-
 function renderLiqForm(caja){
-  const list=caja==='a'?S.liqA:S.liqPru,tcv=caja==='a'?S.tcA:S.tcPru;
+  const list=caja==='a'?S.liqA:S.liqPru,tcv=caja==='a'?S.tcA:S.tcPru,key=caja==='a'?'liqA':'liqPru';
   const cont=document.getElementById('liq-'+caja+'-form');cont.innerHTML='';
-  const key=caja==='a'?'liqA':'liqPru';
   list.forEach((l,i)=>{
     const r=document.createElement('div');r.className='form-row liq-row';
     const eq=l.moneda==='ARS'?l.monto/tcv:l.monto;
-    r.innerHTML=`<input type="text" value="${l.desc}" placeholder="Descripción" oninput="S.${key}[${i}].desc=this.value">
-      <select onchange="S.${key}[${i}].moneda=this.value;renderLiqForm('${caja}')"><option value="USD" ${l.moneda==='USD'?'selected':''}>USD</option><option value="ARS" ${l.moneda==='ARS'?'selected':''}>ARS</option></select>
-      <input type="number" value="${l.monto}" placeholder="0" onchange="S.${key}[${i}].monto=+this.value;renderLiqForm('${caja}')">
-      <span class="equiv-display">${fUSD(eq)}</span>
-      <button class="btn-del" onclick="S.${key}.splice(${i},1);renderLiqForm('${caja}')">✕</button>`;
+    r.innerHTML=`<input type="text" value="${l.desc}" placeholder="Descripción" oninput="S.${key}[${i}].desc=this.value"><select onchange="S.${key}[${i}].moneda=this.value;renderLiqForm('${caja}')"><option value="USD" ${l.moneda==='USD'?'selected':''}>USD</option><option value="ARS" ${l.moneda==='ARS'?'selected':''}>ARS</option></select><input type="number" value="${l.monto}" placeholder="0" onchange="S.${key}[${i}].monto=+this.value;renderLiqForm('${caja}')"><span class="equiv-display">${fUSD(eq)}</span><button class="btn-del" onclick="S.${key}.splice(${i},1);renderLiqForm('${caja}')">✕</button>`;
     cont.appendChild(r);
   });
 }
 function renderActForm(caja){
-  const list=caja==='a'?S.activosA:S.activosPru;
-  const key=caja==='a'?'activosA':'activosPru';
+  const list=caja==='a'?S.activosA:S.activosPru,key=caja==='a'?'activosA':'activosPru';
   const cont=document.getElementById('act-'+caja+'-form');cont.innerHTML='';
   list.forEach((a,i)=>{
     const r=document.createElement('div');r.className='form-row act-row';
-    const rc=a.rend>=0?'#1D9E75':'#E24B4A';
-    r.innerHTML=`<input type="text" value="${a.nombre}" placeholder="Nombre" oninput="S.${key}[${i}].nombre=this.value">
-      <select onchange="S.${key}[${i}].moneda=this.value"><option value="USD" ${a.moneda==='USD'?'selected':''}>USD</option><option value="ARS" ${a.moneda==='ARS'?'selected':''}>ARS</option></select>
-      <input type="number" value="${a.invertido}" placeholder="0" onchange="S.${key}[${i}].invertido=+this.value;recalcRend('${caja}',${i})">
-      <input type="number" value="${a.actual}" placeholder="0" onchange="S.${key}[${i}].actual=+this.value;recalcRend('${caja}',${i})">
-      <input type="number" class="rend-ro" value="${a.rend.toFixed(1)}" readonly style="color:${rc}">
-      <input type="text" value="${a.tipo||''}" placeholder="Tipo" oninput="S.${key}[${i}].tipo=this.value">
-      <button class="btn-del" onclick="S.${key}.splice(${i},1);renderActForm('${caja}')">✕</button>`;
+    r.innerHTML=`<input type="text" value="${a.nombre}" placeholder="Nombre" oninput="S.${key}[${i}].nombre=this.value"><select onchange="S.${key}[${i}].moneda=this.value"><option value="USD" ${a.moneda==='USD'?'selected':''}>USD</option><option value="ARS" ${a.moneda==='ARS'?'selected':''}>ARS</option></select><input type="number" value="${a.invertido}" placeholder="0" onchange="S.${key}[${i}].invertido=+this.value;recalcRend('${caja}',${i})"><input type="number" value="${a.actual}" placeholder="0" onchange="S.${key}[${i}].actual=+this.value;recalcRend('${caja}',${i})"><input type="number" class="rend-ro" value="${a.rend.toFixed(1)}" readonly style="color:${a.rend>=0?'#1D9E75':'#E24B4A'}"><input type="text" value="${a.tipo||''}" placeholder="Tipo" oninput="S.${key}[${i}].tipo=this.value"><button class="btn-del" onclick="S.${key}.splice(${i},1);renderActForm('${caja}')">✕</button>`;
     cont.appendChild(r);
   });
 }
-function recalcRend(caja,i){
-  const key=caja==='a'?'activosA':'activosPru';
-  S[key][i].rend=S[key][i].invertido>0?(S[key][i].actual-S[key][i].invertido)/S[key][i].invertido*100:0;
-  renderActForm(caja);
-}
+function recalcRend(caja,i){const key=caja==='a'?'activosA':'activosPru';S[key][i].rend=S[key][i].invertido>0?(S[key][i].actual-S[key][i].invertido)/S[key][i].invertido*100:0;renderActForm(caja);}
 function renderHistForm(){
   const cont=document.getElementById('hist-form');cont.innerHTML='';
   S.historico.forEach((h,i)=>{
     const r=document.createElement('div');r.className='form-row hist-row';
     const equiv=h.valorARS>0&&h.tc>0&&!h.valorUSD?fUSD(h.valorARS/h.tc):'—';
-    r.innerHTML=`<input type="text" value="${h.mes}" placeholder="Mar 2025" oninput="S.historico[${i}].mes=this.value">
-      <input type="number" value="${h.valorUSD||0}" placeholder="0" title="Valor en USD" onchange="S.historico[${i}].valorUSD=+this.value;renderHistForm()">
-      <input type="number" value="${h.valorARS||0}" placeholder="0" title="Valor en ARS" onchange="S.historico[${i}].valorARS=+this.value;renderHistForm()">
-      <input type="number" value="${h.tc||0}" placeholder="TC del mes" title="Tipo de cambio ARS/USD de ese momento" onchange="S.historico[${i}].tc=+this.value;renderHistForm()">
-      <span class="equiv-display" style="font-size:12px;color:${equiv!=='—'?'var(--green)':'var(--text3)'}">${equiv}</span>
-      <button class="btn-del" onclick="S.historico.splice(${i},1);renderHistForm()">✕</button>`;
+    r.innerHTML=`<input type="text" value="${h.mes}" placeholder="Mar 2025" oninput="S.historico[${i}].mes=this.value"><input type="number" value="${h.valorUSD||0}" placeholder="0" onchange="S.historico[${i}].valorUSD=+this.value;renderHistForm()"><input type="number" value="${h.valorARS||0}" placeholder="0" onchange="S.historico[${i}].valorARS=+this.value;renderHistForm()"><input type="number" value="${h.tc||0}" placeholder="TC del mes" onchange="S.historico[${i}].tc=+this.value;renderHistForm()"><span class="equiv-display" style="font-size:12px;color:${equiv!=='—'?'var(--green)':'var(--text3)'}">${equiv}</span><button class="btn-del" onclick="S.historico.splice(${i},1);renderHistForm()">✕</button>`;
     cont.appendChild(r);
   });
 }
 function renderEditForm(){
   document.getElementById('tc-a').value=S.tcA;
   document.getElementById('tc-pru').value=S.tcPru;
+  document.getElementById('nombre-informe-input').value=S.titulo||'';
   renderLiqForm('a');renderLiqForm('pru');
   renderActForm('a');renderActForm('pru');
   renderHistForm();
@@ -535,6 +523,7 @@ function showTab(name){
   if(name==='historico')renderHistorico();
 }
 function renderAll(hist=true){
+  renderTitulo();
   renderMetrics();renderFondos();renderMoneda();renderCaja();renderTablaPosicion();
   if(hist)renderHistorico();
   renderCartera();
