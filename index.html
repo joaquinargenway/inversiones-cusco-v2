@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="page-title">Informe de Inversiones</title>
+<title>Informe de Inversiones</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -19,25 +19,21 @@
   --green-bg:#EAF3DE;--green-text:#3B6D11;
 }
 @media(prefers-color-scheme:dark){
-  :root{
-    --bg:#1e1e1c;--bg2:#282826;--bg3:#313130;
-    --text:#e8e6de;--text2:#9c9a92;--text3:#6b6a65;
-    --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.18);
-    --purple-bg:#26215C;--purple-text:#CECBF6;
-    --amber-bg:#412402;--amber-text:#FAC775;
-    --blue-bg:#042C53;--blue-text:#B5D4F4;
-    --green-bg:#173404;--green-text:#C0DD97;
-  }
+  :root{--bg:#1e1e1c;--bg2:#282826;--bg3:#313130;--text:#e8e6de;--text2:#9c9a92;--text3:#6b6a65;--border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.18);--purple-bg:#26215C;--purple-text:#CECBF6;--amber-bg:#412402;--amber-text:#FAC775;--blue-bg:#042C53;--blue-text:#B5D4F4;--green-bg:#173404;--green-text:#C0DD97;}
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh;}
 .page{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
 .header{margin-bottom:2rem;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem;}
 .header h1{font-size:24px;font-weight:600;}
 .header p{font-size:13px;color:var(--text2);margin-top:3px;}
+.header-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.sync-badge{font-size:11px;padding:4px 10px;border-radius:20px;font-weight:500;}
+.sync-ok{background:var(--green-bg);color:var(--green-text);}
+.sync-err{background:#FCEBEB;color:#A32D2D;}
+.sync-loading{background:var(--bg2);color:var(--text2);}
 .tabs{display:flex;gap:4px;margin-bottom:1.5rem;border-bottom:1px solid var(--border);}
 .tab{font-size:13px;padding:8px 16px;border:none;background:none;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit;transition:color .15s;}
-.tab:hover{color:var(--text);}
-.tab.active{color:var(--text);border-bottom:2px solid var(--text);font-weight:500;}
+.tab:hover{color:var(--text);}.tab.active{color:var(--text);border-bottom:2px solid var(--text);font-weight:500;}
 .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem;}
 @media(max-width:700px){.metrics{grid-template-columns:1fr 1fr;}}
 .metric{background:var(--bg2);border-radius:var(--radius);padding:16px 18px;}
@@ -101,26 +97,37 @@ input:focus,select:focus{outline:none;border-color:var(--blue);}
 .toggle-btn{font-size:12px;padding:4px 12px;border:none;border-radius:6px;background:none;cursor:pointer;color:var(--text2);font-family:inherit;transition:all .15s;white-space:nowrap;}
 .toggle-btn.active{background:var(--bg);color:var(--text);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.1);}
 .usd-calc{font-size:12px;color:var(--green);font-variant-numeric:tabular-nums;font-weight:500;}
-/* Titulo editable */
 .titulo-wrap{display:flex;align-items:center;gap:8px;}
 #titulo-display{font-size:24px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:border-color .2s;}
 #titulo-display:hover{border-bottom:2px solid var(--border2);}
 #titulo-input{font-size:24px;font-weight:600;border:none;border-bottom:2px solid var(--blue);background:transparent;color:var(--text);padding:0;width:320px;font-family:inherit;outline:none;display:none;}
 .titulo-hint{font-size:11px;color:var(--text3);margin-top:2px;}
+.loader-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:999;}
+.loader-box{background:var(--bg);border-radius:var(--radius-lg);padding:2rem 2.5rem;text-align:center;font-size:14px;color:var(--text2);}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
+
+<div id="loader-overlay" class="loader-overlay">
+  <div class="loader-box"><div class="spinner"></div>Cargando datos...</div>
+</div>
+
 <div class="page">
   <div class="header">
     <div>
       <div class="titulo-wrap">
-        <h1 id="titulo-display" onclick="editarTitulo()" title="Clic para editar el título">Informe de inversiones</h1>
+        <h1 id="titulo-display" onclick="editarTitulo()" title="Clic para editar">Informe de inversiones</h1>
         <input type="text" id="titulo-input" placeholder="Nombre del informe" onblur="guardarTitulo()" onkeydown="if(event.key==='Enter')guardarTitulo()">
       </div>
       <p id="fecha-header">—</p>
       <p class="titulo-hint">Hacé clic en el título para editarlo</p>
     </div>
-    <button class="btn-add" onclick="window.print()" style="font-size:12px;padding:6px 14px">Imprimir / PDF ↗</button>
+    <div class="header-right">
+      <span id="sync-badge" class="sync-badge sync-loading">Conectando...</span>
+      <button class="btn-add" onclick="window.print()" style="font-size:12px;padding:6px 14px">Imprimir / PDF ↗</button>
+    </div>
   </div>
 
   <div class="tabs">
@@ -139,26 +146,11 @@ input:focus,select:focus{outline:none;border-color:var(--blue);}
     </div>
     <div class="metrics" id="metrics-row"></div>
     <div class="grid2">
-      <div class="card">
-        <div class="card-title">Invertido vs Liquidez</div>
-        <div class="legend" id="leg-fondos"></div>
-        <div class="chart-wrap" style="height:190px"><canvas id="chart-fondos"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Ponderación por moneda</div>
-        <div class="legend" id="leg-moneda"></div>
-        <div class="chart-wrap" style="height:190px"><canvas id="chart-moneda"></canvas></div>
-      </div>
+      <div class="card"><div class="card-title">Invertido vs Liquidez</div><div class="legend" id="leg-fondos"></div><div class="chart-wrap" style="height:190px"><canvas id="chart-fondos"></canvas></div></div>
+      <div class="card"><div class="card-title">Ponderación por moneda</div><div class="legend" id="leg-moneda"></div><div class="chart-wrap" style="height:190px"><canvas id="chart-moneda"></canvas></div></div>
     </div>
-    <div class="card">
-      <div class="card-title">Ponderación por caja</div>
-      <div class="legend" id="leg-caja"></div>
-      <div class="chart-wrap" style="height:150px"><canvas id="chart-caja"></canvas></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Posición actual</div>
-      <div id="tabla-posicion"></div>
-    </div>
+    <div class="card"><div class="card-title">Ponderación por caja</div><div class="legend" id="leg-caja"></div><div class="chart-wrap" style="height:150px"><canvas id="chart-caja"></canvas></div></div>
+    <div class="card"><div class="card-title">Posición actual</div><div id="tabla-posicion"></div></div>
   </div>
 
   <!-- HISTORICO -->
@@ -174,33 +166,17 @@ input:focus,select:focus{outline:none;border-color:var(--blue);}
       </div>
       <div class="chart-wrap" style="height:280px;margin-top:1rem"><canvas id="chart-historico"></canvas></div>
     </div>
-    <div class="card">
-      <div class="card-title">Detalle histórico con tipo de cambio</div>
-      <div id="tabla-historico"></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Rendimiento por activo</div>
-      <div class="chart-wrap" id="wrap-activos" style="height:220px"><canvas id="chart-activos"></canvas></div>
-    </div>
+    <div class="card"><div class="card-title">Detalle histórico con tipo de cambio</div><div id="tabla-historico"></div></div>
+    <div class="card"><div class="card-title">Rendimiento por activo</div><div class="chart-wrap" id="wrap-activos" style="height:220px"><canvas id="chart-activos"></canvas></div></div>
   </div>
 
   <!-- CARTERA -->
   <div id="tab-cartera" class="sh">
     <div class="grid3">
-      <div class="card">
-        <div class="card-title">Composición</div>
-        <div class="legend" id="leg-comp"></div>
-        <div class="chart-wrap" style="height:180px"><canvas id="chart-comp"></canvas></div>
-      </div>
-      <div class="card" style="grid-column:span 2">
-        <div class="card-title">Distribución por activo</div>
-        <div class="chart-wrap" style="height:180px"><canvas id="chart-dist"></canvas></div>
-      </div>
+      <div class="card"><div class="card-title">Composición</div><div class="legend" id="leg-comp"></div><div class="chart-wrap" style="height:180px"><canvas id="chart-comp"></canvas></div></div>
+      <div class="card" style="grid-column:span 2"><div class="card-title">Distribución por activo</div><div class="chart-wrap" style="height:180px"><canvas id="chart-dist"></canvas></div></div>
     </div>
-    <div class="card">
-      <div class="card-title">Detalle completo</div>
-      <div id="tabla-detalle"></div>
-    </div>
+    <div class="card"><div class="card-title">Detalle completo</div><div id="tabla-detalle"></div></div>
   </div>
 
   <!-- EDITAR -->
@@ -211,22 +187,12 @@ input:focus,select:focus{outline:none;border-color:var(--blue);}
         <input type="text" id="nombre-informe-input" placeholder="Ej: Portafolio 2025" style="max-width:400px">
         <button class="btn-add" onclick="aplicarNombre()">Aplicar</button>
       </div>
-      <p style="font-size:12px;color:var(--text2);margin-top:8px">También podés hacer clic directamente sobre el título arriba para editarlo.</p>
     </div>
-
     <div class="card">
       <div class="card-title">Tipos de cambio actuales ARS → USD</div>
       <div class="tc-grid">
-        <div>
-          <div class="caja-header"><div class="caja-dot" style="background:var(--purple)"></div><span style="font-weight:500">Caja A</span></div>
-          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">ARS por USD</label>
-          <input type="number" id="tc-a" min="1" step="10" placeholder="1200">
-        </div>
-        <div>
-          <div class="caja-header"><div class="caja-dot" style="background:var(--amber)"></div><span style="font-weight:500">Caja Pru</span></div>
-          <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">ARS por USD</label>
-          <input type="number" id="tc-pru" min="1" step="10" placeholder="1250">
-        </div>
+        <div><div class="caja-header"><div class="caja-dot" style="background:var(--purple)"></div><span style="font-weight:500">Caja A</span></div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">ARS por USD</label><input type="number" id="tc-a" min="1" step="10" placeholder="1200"></div>
+        <div><div class="caja-header"><div class="caja-dot" style="background:var(--amber)"></div><span style="font-weight:500">Caja Pru</span></div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">ARS por USD</label><input type="number" id="tc-pru" min="1" step="10" placeholder="1250"></div>
       </div>
     </div>
 
@@ -256,93 +222,89 @@ input:focus,select:focus{outline:none;border-color:var(--blue);}
 
     <div class="card">
       <div class="card-title">Historial mensual</div>
-      <div class="hist-info">Por cada período podés ingresar el valor <strong>en USD</strong>, <strong>en ARS</strong>, o los dos. Si cargás en ARS con el TC de ese momento, la columna verde muestra el equivalente en USD calculado automáticamente.</div>
-      <div class="form-row hist-row form-hdr" style="margin-bottom:4px">
-        <span>Mes / Período</span><span>Valor USD</span><span>Valor ARS</span><span>TC del momento</span><span>Equiv. USD</span><span></span>
-      </div>
+      <div class="hist-info">Por cada período podés ingresar el valor <strong>en USD</strong>, <strong>en ARS</strong>, o los dos. Si cargás en ARS con el TC de ese momento, la columna verde muestra el equivalente en USD calculado.</div>
+      <div class="form-row hist-row form-hdr" style="margin-bottom:4px"><span>Mes / Período</span><span>Valor USD</span><span>Valor ARS</span><span>TC del momento</span><span>Equiv. USD</span><span></span></div>
       <div id="hist-form" class="form-section"></div>
       <button class="btn-add" style="margin-top:8px" onclick="addHistorico()">+ Período</button>
-      <p style="font-size:12px;color:var(--text2);margin-top:10px;line-height:1.6">Si el período fue en USD dejá ARS y TC en 0. Si fue en ARS, completá ARS + TC y el sistema calcula el USD equivalente de ese momento.</p>
+      <p style="font-size:12px;color:var(--text2);margin-top:10px;line-height:1.6">Si el período fue en USD dejá ARS y TC en 0. Si fue en ARS, completá ARS + TC y el sistema calcula el USD equivalente.</p>
     </div>
 
     <div class="actions-row">
-      <button class="btn-primary" onclick="guardarYActualizar()">Guardar y actualizar informe</button>
-      <button class="btn-add" onclick="exportarDatos()">Exportar datos (JSON)</button>
-      <button class="btn-add" onclick="importarDatos()">Importar datos (JSON)</button>
+      <button class="btn-primary" onclick="guardarYActualizar()">Guardar y sincronizar ☁</button>
+      <button class="btn-add" onclick="exportarDatos()">Exportar JSON</button>
+      <button class="btn-add" onclick="importarDatos()">Importar JSON</button>
     </div>
     <input type="file" id="file-import" accept=".json" style="display:none" onchange="leerJSON(this)">
   </div>
 </div>
 
 <script>
+// ── CONFIGURACIÓN JSONBIN ──────────────────────────────
+const BIN_ID = '69b8536db7ec241ddc741e4d';
+const API_KEY = '$2a$10$.zp29/COo.zu8YGxWl425eapp9xpJEeJOTkCzlvuM3bpAXftV528y';
+const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+// ──────────────────────────────────────────────────────
+
 const COL=['#378ADD','#1D9E75','#EF9F27','#D4537E','#7F77DD','#D85A30','#639922','#3B8BD4','#BA7517','#0F6E56'];
 let filtro='all', histView='usd';
 
-let S={
-  titulo:'Informe de inversiones',
-  tcA:1200,tcPru:1250,
+const DEFAULT_S={
+  titulo:'Informe de inversiones',tcA:1200,tcPru:1250,
   liqA:[{desc:'Cuenta corriente',moneda:'ARS',monto:1500000},{desc:'Cash USD',moneda:'USD',monto:3000}],
   liqPru:[{desc:'Fondo común',moneda:'ARS',monto:800000},{desc:'Cash USD',moneda:'USD',monto:2000}],
-  activosA:[
-    {nombre:'S&P 500 ETF',moneda:'USD',invertido:15000,actual:17250,rend:15,tipo:'Acciones'},
-    {nombre:'Cedear AAPL',moneda:'USD',invertido:8000,actual:8640,rend:8,tipo:'Cedear'}
-  ],
-  activosPru:[
-    {nombre:'Plazo Fijo ARS',moneda:'ARS',invertido:3000000,actual:3450000,rend:15,tipo:'Renta Fija'},
-    {nombre:'Bono AL30',moneda:'USD',invertido:4000,actual:3800,rend:-5,tipo:'Bono'}
-  ],
-  historico:[
-    {mes:'Ago 2024',valorUSD:28000,valorARS:0,tc:0},
-    {mes:'Sep 2024',valorUSD:0,valorARS:35400000,tc:1180},
-    {mes:'Oct 2024',valorUSD:31000,valorARS:0,tc:0},
-    {mes:'Nov 2024',valorUSD:0,valorARS:38322600,tc:1258},
-    {mes:'Dic 2024',valorUSD:32800,valorARS:0,tc:0},
-    {mes:'Ene 2025',valorUSD:33500,valorARS:0,tc:0},
-    {mes:'Feb 2025',valorUSD:35100,valorARS:0,tc:0},
-    {mes:'Mar 2025',valorUSD:36200,valorARS:0,tc:0}
-  ]
+  activosA:[{nombre:'S&P 500 ETF',moneda:'USD',invertido:15000,actual:17250,rend:15,tipo:'Acciones'},{nombre:'Cedear AAPL',moneda:'USD',invertido:8000,actual:8640,rend:8,tipo:'Cedear'}],
+  activosPru:[{nombre:'Plazo Fijo ARS',moneda:'ARS',invertido:3000000,actual:3450000,rend:15,tipo:'Renta Fija'},{nombre:'Bono AL30',moneda:'USD',invertido:4000,actual:3800,rend:-5,tipo:'Bono'}],
+  historico:[{mes:'Ago 2024',valorUSD:28000,valorARS:0,tc:0},{mes:'Sep 2024',valorUSD:0,valorARS:35400000,tc:1180},{mes:'Oct 2024',valorUSD:31000,valorARS:0,tc:0},{mes:'Nov 2024',valorUSD:0,valorARS:38322600,tc:1258},{mes:'Dic 2024',valorUSD:32800,valorARS:0,tc:0},{mes:'Ene 2025',valorUSD:33500,valorARS:0,tc:0},{mes:'Feb 2025',valorUSD:35100,valorARS:0,tc:0},{mes:'Mar 2025',valorUSD:36200,valorARS:0,tc:0}]
 };
+let S=JSON.parse(JSON.stringify(DEFAULT_S));
 
-// --- Título editable ---
-function editarTitulo(){
-  const d=document.getElementById('titulo-display');
-  const inp=document.getElementById('titulo-input');
-  inp.value=d.textContent;
-  d.style.display='none';
-  inp.style.display='block';
-  inp.focus();inp.select();
-}
-function guardarTitulo(){
-  const d=document.getElementById('titulo-display');
-  const inp=document.getElementById('titulo-input');
-  const nuevo=inp.value.trim()||'Informe de inversiones';
-  S.titulo=nuevo;
-  d.textContent=nuevo;
-  document.title=nuevo;
-  inp.style.display='none';
-  d.style.display='';
-  guardarLocal();
-}
-function aplicarNombre(){
-  const v=document.getElementById('nombre-informe-input').value.trim();
-  if(!v)return;
-  S.titulo=v;
-  document.getElementById('titulo-display').textContent=v;
-  document.title=v;
-  guardarLocal();
-}
-function renderTitulo(){
-  document.getElementById('titulo-display').textContent=S.titulo||'Informe de inversiones';
-  document.title=S.titulo||'Informe de inversiones';
+// ── SYNC JSONBIN ───────────────────────────────────────
+function setSyncBadge(estado){
+  const b=document.getElementById('sync-badge');
+  if(estado==='ok'){b.textContent='✓ Sincronizado';b.className='sync-badge sync-ok';}
+  else if(estado==='err'){b.textContent='Sin conexión';b.className='sync-badge sync-err';}
+  else if(estado==='saving'){b.textContent='Guardando...';b.className='sync-badge sync-loading';}
+  else{b.textContent='Cargando...';b.className='sync-badge sync-loading';}
 }
 
-function histUSD(h){if(h.valorUSD>0)return h.valorUSD;if(h.valorARS>0&&h.tc>0)return h.valorARS/h.tc;return 0;}
-function histARS(h){if(h.valorARS>0)return h.valorARS;if(h.valorUSD>0&&h.tc>0)return h.valorUSD*h.tc;return 0;}
-function guardarLocal(){try{localStorage.setItem('inv_v3',JSON.stringify(S));}catch(e){}}
-function cargarLocal(){try{const d=localStorage.getItem('inv_v3');if(d)S=JSON.parse(d);}catch(e){}}
+async function cargarNube(){
+  try{
+    const r=await fetch(BIN_URL+'/latest',{headers:{'X-Master-Key':API_KEY}});
+    if(!r.ok)throw new Error();
+    const data=await r.json();
+    if(data.record&&data.record.titulo!==undefined){S=data.record;}
+    setSyncBadge('ok');
+  }catch(e){
+    setSyncBadge('err');
+  }
+  document.getElementById('loader-overlay').style.display='none';
+  renderAll();
+}
+
+async function guardarNube(){
+  setSyncBadge('saving');
+  try{
+    const r=await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify(S)});
+    if(!r.ok)throw new Error();
+    setSyncBadge('ok');
+  }catch(e){
+    setSyncBadge('err');
+    alert('No se pudo guardar en la nube. Verificá tu conexión.');
+  }
+}
+// ──────────────────────────────────────────────────────
+
+function editarTitulo(){const d=document.getElementById('titulo-display'),inp=document.getElementById('titulo-input');inp.value=d.textContent;d.style.display='none';inp.style.display='block';inp.focus();inp.select();}
+function guardarTitulo(){const d=document.getElementById('titulo-display'),inp=document.getElementById('titulo-input');const v=inp.value.trim()||'Informe de inversiones';S.titulo=v;d.textContent=v;document.title=v;inp.style.display='none';d.style.display='';}
+function aplicarNombre(){const v=document.getElementById('nombre-informe-input').value.trim();if(!v)return;S.titulo=v;document.getElementById('titulo-display').textContent=v;document.title=v;}
+function renderTitulo(){document.getElementById('titulo-display').textContent=S.titulo||'Informe de inversiones';document.title=S.titulo||'Informe de inversiones';}
+
+function histUSD(h){return(h.valorUSD||0)+((h.valorARS>0&&h.tc>0)?h.valorARS/h.tc:0);}
+function histARS(h){return(h.valorARS||0)+((h.valorUSD>0&&h.tc>0)?h.valorUSD*h.tc:0);}
+
 function exportarDatos(){const b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='inversiones_backup.json';a.click();}
 function importarDatos(){document.getElementById('file-import').click();}
-function leerJSON(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{S=JSON.parse(e.target.result);renderAll();renderEditForm();alert('Datos importados correctamente.');}catch(err){alert('Error al leer el archivo.');}};r.readAsText(f);}
+function leerJSON(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{S=JSON.parse(e.target.result);renderAll();renderEditForm();alert('Datos importados. Hacé clic en "Guardar y sincronizar" para subirlos a la nube.');}catch(err){alert('Error al leer el archivo.');}};r.readAsText(f);}
 
 function tc(c){return c==='a'?S.tcA:S.tcPru;}
 function toUSD(m,moneda,caja){return moneda==='ARS'?m/tc(caja):m;}
@@ -364,76 +326,22 @@ function calcAll(){
   const liqUSD=a.liqUSD+p.liqUSD,invUSD=a.invUSD+p.invUSD,actUSD=a.actUSD+p.actUSD,g=actUSD-invUSD;
   return{liqUSD,invUSD,actUSD,ganancia:g,rend:invUSD>0?g/invUSD*100:0,total:actUSD+liqUSD};
 }
-function getActivos(){
-  if(filtro==='a')return S.activosA.map(a=>({...a,caja:'a'}));
-  if(filtro==='pru')return S.activosPru.map(a=>({...a,caja:'pru'}));
-  return[...S.activosA.map(a=>({...a,caja:'a'})),...S.activosPru.map(a=>({...a,caja:'pru'}))];
-}
-function getLiqs(){
-  if(filtro==='a')return S.liqA.map(l=>({...l,caja:'a'}));
-  if(filtro==='pru')return S.liqPru.map(l=>({...l,caja:'pru'}));
-  return[...S.liqA.map(l=>({...l,caja:'a'})),...S.liqPru.map(l=>({...l,caja:'pru'}))];
-}
+function getActivos(){if(filtro==='a')return S.activosA.map(a=>({...a,caja:'a'}));if(filtro==='pru')return S.activosPru.map(a=>({...a,caja:'pru'}));return[...S.activosA.map(a=>({...a,caja:'a'})),...S.activosPru.map(a=>({...a,caja:'pru'}))];}
+function getLiqs(){if(filtro==='a')return S.liqA.map(l=>({...l,caja:'a'}));if(filtro==='pru')return S.liqPru.map(l=>({...l,caja:'pru'}));return[...S.liqA.map(l=>({...l,caja:'a'})),...S.liqPru.map(l=>({...l,caja:'pru'}))];}
 
 let CH={};
 function dC(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
-function mkDonut(id,labels,data,colors){
-  dC(id);
-  CH[id]=new Chart(document.getElementById(id),{
-    type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:0,hoverOffset:4}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'66%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fUSD(ctx.raw)}}}}
-  });
-}
+function mkDonut(id,labels,data,colors){dC(id);CH[id]=new Chart(document.getElementById(id),{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'66%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fUSD(ctx.raw)}}}}});}
 
-function renderMetrics(){
-  const m=calcAll(),s=m.ganancia>=0;
-  document.getElementById('metrics-row').innerHTML=`
-    <div class="metric"><div class="metric-label">Total portafolio</div><div class="metric-value">${fUSD(m.total)}</div><div class="metric-sub" style="color:var(--text2)">Invertido + Liquidez</div></div>
-    <div class="metric"><div class="metric-label">Fondos invertidos</div><div class="metric-value">${fUSD(m.actUSD)}</div><div class="metric-sub ${s?'pos':'neg'}">${s?'▲':'▼'} ${fUSD(Math.abs(m.ganancia))} (${m.rend.toFixed(1)}%)</div></div>
-    <div class="metric"><div class="metric-label">Liquidez total</div><div class="metric-value">${fUSD(m.liqUSD)}</div><div class="metric-sub" style="color:var(--text2)">Equiv. USD</div></div>
-    <div class="metric"><div class="metric-label">Rendimiento</div><div class="metric-value ${m.rend>=0?'pos':'neg'}">${m.rend>=0?'+':''}${m.rend.toFixed(1)}%</div><div class="metric-sub" style="color:var(--text2)">Sobre capital invertido</div></div>`;
-}
-function renderFondos(){
-  const m=calcAll(),d=[m.actUSD,m.liqUSD],l=['Invertido','Liquidez'],c=['#378ADD','#9FE1CB'];
-  document.getElementById('leg-fondos').innerHTML=l.map((x,i)=>`<div class="legend-item"><div class="legend-dot" style="background:${c[i]}"></div>${x}: ${fUSD(d[i])}</div>`).join('');
-  mkDonut('chart-fondos',l,d,c);
-}
-function renderMoneda(){
-  const acts=getActivos(),liqs=getLiqs();let usd=0,ars=0;
-  acts.forEach(a=>{const v=toUSD(a.actual,a.moneda,a.caja);a.moneda==='USD'?usd+=v:ars+=v;});
-  liqs.forEach(l=>{const v=toUSD(l.monto,l.moneda,l.caja);l.moneda==='USD'?usd+=v:ars+=v;});
-  const tot=usd+ars,d=[usd,ars],l=['USD','ARS'],c=['#378ADD','#1D9E75'];
-  document.getElementById('leg-moneda').innerHTML=l.map((x,i)=>`<div class="legend-item"><div class="legend-dot" style="background:${c[i]}"></div>${x}: ${fUSD(d[i])} (${tot>0?(d[i]/tot*100).toFixed(1):0}%)</div>`).join('');
-  mkDonut('chart-moneda',l,d,c);
-}
-function renderCaja(){
-  const ca=calcCaja('a'),cp=calcCaja('pru'),d=[ca.total,cp.total],l=['Caja A','Caja Pru'],c=['#7F77DD','#EF9F27'],tot=d[0]+d[1];
-  document.getElementById('leg-caja').innerHTML=l.map((x,i)=>`<div class="legend-item"><div class="legend-dot" style="background:${c[i]}"></div>${x}: ${fUSD(d[i])} (${tot>0?(d[i]/tot*100).toFixed(1):0}%)</div>`).join('');
-  dC('chart-caja');
-  CH['chart-caja']=new Chart(document.getElementById('chart-caja'),{
-    type:'bar',data:{labels:l,datasets:[{data:d,backgroundColor:c,borderRadius:6,borderSkipped:false}]},
-    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fUSD(ctx.raw)}}},scales:{x:{ticks:{callback:v=>fUSD(v)},grid:{color:'rgba(128,128,128,.07)'}},y:{grid:{display:false}}}}
-  });
-}
-function renderTablaPosicion(){
-  const acts=getActivos(),liqs=getLiqs();
-  let html='<table><thead><tr><th>Activo</th><th>Caja</th><th>Moneda</th><th>Tipo</th><th>Invertido</th><th>Valor actual</th><th>Rend.</th></tr></thead><tbody>';
-  acts.forEach(a=>{html+=`<tr><td class="td-name">${a.nombre}</td><td><span class="badge badge-caja-${a.caja}">${a.caja==='a'?'Caja A':'Caja Pru'}</span></td><td><span class="badge badge-${a.moneda.toLowerCase()}">${a.moneda}</span></td><td style="color:var(--text2)">${a.tipo||'—'}</td><td>${fMonto(a.invertido,a.moneda)}</td><td>${fMonto(a.actual,a.moneda)}</td><td class="${a.rend>=0?'pos':'neg'}">${a.rend>=0?'+':''}${a.rend.toFixed(1)}%</td></tr>`;});
-  if(liqs.length){
-    html+=`<tr><td colspan="7" style="font-size:11px;color:var(--text2);padding-top:12px;text-transform:uppercase;letter-spacing:.05em">Liquidez disponible</td></tr>`;
-    liqs.forEach(l=>{html+=`<tr><td class="td-name">${l.desc}</td><td><span class="badge badge-caja-${l.caja}">${l.caja==='a'?'Caja A':'Caja Pru'}</span></td><td><span class="badge badge-${l.moneda.toLowerCase()}">${l.moneda}</span></td><td style="color:var(--text2)">Liquidez</td><td colspan="2">${fMonto(l.monto,l.moneda)}</td><td style="color:var(--text2)">—</td></tr>`;});
-  }
-  document.getElementById('tabla-posicion').innerHTML=html+'</tbody></table>';
-}
-function setHistView(v){
-  histView=v;
-  ['usd','ars','ambos'].forEach(x=>document.getElementById('toggle-'+x).classList.toggle('active',x===v));
-  renderHistorico();
-}
+function renderMetrics(){const m=calcAll(),s=m.ganancia>=0;document.getElementById('metrics-row').innerHTML=`<div class="metric"><div class="metric-label">Total portafolio</div><div class="metric-value">${fUSD(m.total)}</div><div class="metric-sub" style="color:var(--text2)">Invertido + Liquidez</div></div><div class="metric"><div class="metric-label">Fondos invertidos</div><div class="metric-value">${fUSD(m.actUSD)}</div><div class="metric-sub ${s?'pos':'neg'}">${s?'▲':'▼'} ${fUSD(Math.abs(m.ganancia))} (${m.rend.toFixed(1)}%)</div></div><div class="metric"><div class="metric-label">Liquidez total</div><div class="metric-value">${fUSD(m.liqUSD)}</div><div class="metric-sub" style="color:var(--text2)">Equiv. USD</div></div><div class="metric"><div class="metric-label">Rendimiento</div><div class="metric-value ${m.rend>=0?'pos':'neg'}">${m.rend>=0?'+':''}${m.rend.toFixed(1)}%</div><div class="metric-sub" style="color:var(--text2)">Sobre capital invertido</div></div>`;}
+function renderFondos(){const m=calcAll(),d=[m.actUSD,m.liqUSD],l=['Invertido','Liquidez'],c=['#378ADD','#9FE1CB'];document.getElementById('leg-fondos').innerHTML=l.map((x,i)=>`<div class="legend-item"><div class="legend-dot" style="background:${c[i]}"></div>${x}: ${fUSD(d[i])}</div>`).join('');mkDonut('chart-fondos',l,d,c);}
+function renderMoneda(){const acts=getActivos(),liqs=getLiqs();let usd=0,ars=0;acts.forEach(a=>{const v=toUSD(a.actual,a.moneda,a.caja);a.moneda==='USD'?usd+=v:ars+=v;});liqs.forEach(l=>{const v=toUSD(l.monto,l.moneda,l.caja);l.moneda==='USD'?usd+=v:ars+=v;});const tot=usd+ars,d=[usd,ars],l=['USD','ARS'],c=['#378ADD','#1D9E75'];document.getElementById('leg-moneda').innerHTML=l.map((x,i)=>`<div class="legend-item"><div class="legend-dot" style="background:${c[i]}"></div>${x}: ${fUSD(d[i])} (${tot>0?(d[i]/tot*100).toFixed(1):0}%)</div>`).join('');mkDonut('chart-moneda',l,d,c);}
+function renderCaja(){const ca=calcCaja('a'),cp=calcCaja('pru'),d=[ca.total,cp.total],l=['Caja A','Caja Pru'],c=['#7F77DD','#EF9F27'],tot=d[0]+d[1];document.getElementById('leg-caja').innerHTML=l.map((x,i)=>`<div class="legend-item"><div class="legend-dot" style="background:${c[i]}"></div>${x}: ${fUSD(d[i])} (${tot>0?(d[i]/tot*100).toFixed(1):0}%)</div>`).join('');dC('chart-caja');CH['chart-caja']=new Chart(document.getElementById('chart-caja'),{type:'bar',data:{labels:l,datasets:[{data:d,backgroundColor:c,borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fUSD(ctx.raw)}}},scales:{x:{ticks:{callback:v=>fUSD(v)},grid:{color:'rgba(128,128,128,.07)'}},y:{grid:{display:false}}}}});}
+function renderTablaPosicion(){const acts=getActivos(),liqs=getLiqs();let html='<table><thead><tr><th>Activo</th><th>Caja</th><th>Moneda</th><th>Tipo</th><th>Invertido</th><th>Valor actual</th><th>Rend.</th></tr></thead><tbody>';acts.forEach(a=>{html+=`<tr><td class="td-name">${a.nombre}</td><td><span class="badge badge-caja-${a.caja}">${a.caja==='a'?'Caja A':'Caja Pru'}</span></td><td><span class="badge badge-${a.moneda.toLowerCase()}">${a.moneda}</span></td><td style="color:var(--text2)">${a.tipo||'—'}</td><td>${fMonto(a.invertido,a.moneda)}</td><td>${fMonto(a.actual,a.moneda)}</td><td class="${a.rend>=0?'pos':'neg'}">${a.rend>=0?'+':''}${a.rend.toFixed(1)}%</td></tr>`;});if(liqs.length){html+=`<tr><td colspan="7" style="font-size:11px;color:var(--text2);padding-top:12px;text-transform:uppercase;letter-spacing:.05em">Liquidez disponible</td></tr>`;liqs.forEach(l=>{html+=`<tr><td class="td-name">${l.desc}</td><td><span class="badge badge-caja-${l.caja}">${l.caja==='a'?'Caja A':'Caja Pru'}</span></td><td><span class="badge badge-${l.moneda.toLowerCase()}">${l.moneda}</span></td><td style="color:var(--text2)">Liquidez</td><td colspan="2">${fMonto(l.monto,l.moneda)}</td><td style="color:var(--text2)">—</td></tr>`;});}document.getElementById('tabla-posicion').innerHTML=html+'</tbody></table>';}
+
+function setHistView(v){histView=v;['usd','ars','ambos'].forEach(x=>document.getElementById('toggle-'+x).classList.toggle('active',x===v));renderHistorico();}
 function renderHistorico(){
-  const labels=S.historico.map(h=>h.mes);
-  const dataUSD=S.historico.map(h=>histUSD(h));
-  const dataARS=S.historico.map(h=>histARS(h));
+  const labels=S.historico.map(h=>h.mes),dataUSD=S.historico.map(h=>histUSD(h)),dataARS=S.historico.map(h=>histARS(h));
   dC('chart-historico');
   let datasets=[];
   if(histView==='usd'||histView==='ambos')datasets.push({label:'Portafolio USD',data:dataUSD,borderColor:'#378ADD',backgroundColor:'rgba(55,138,221,.07)',fill:histView==='usd',tension:.4,pointRadius:4,pointBackgroundColor:'#378ADD',borderWidth:2,yAxisID:histView==='ambos'?'y':'y'});
@@ -441,11 +349,10 @@ function renderHistorico(){
   const scales=histView==='ambos'?{y:{position:'left',ticks:{callback:v=>fUSD(v)},grid:{color:'rgba(128,128,128,.08)'}},y1:{position:'right',ticks:{callback:v=>fARS(v)},grid:{display:false}},x:{grid:{display:false}}}:{y:{ticks:{callback:histView==='ars'?v=>fARS(v):v=>fUSD(v)},grid:{color:'rgba(128,128,128,.08)'}},x:{grid:{display:false}}};
   CH['chart-historico']=new Chart(document.getElementById('chart-historico'),{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:histView==='ambos'},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+(ctx.dataset.yAxisID==='y1'?fARS(ctx.raw):fUSD(ctx.raw))}}},scales}});
   let trows=S.historico.map(h=>{
-    const usd=histUSD(h),ars=histARS(h);
-    const tcStr=h.tc>0?'$ '+fmt(h.tc):'—';
-    const equivCell=h.valorARS>0&&h.tc>0&&!h.valorUSD?`<span class="usd-calc">${fUSD(usd)}</span>`:`<span style="color:var(--text3)">—</span>`;
+    const usd=histUSD(h),ars=histARS(h),tcStr=h.tc>0?'$ '+fmt(h.tc):'—';
+    const arsConv=h.valorARS>0&&h.tc>0?`<span class="usd-calc">${fUSD(h.valorARS/h.tc)}</span>`:`<span style="color:var(--text3)">—</span>`;
     const badge=h.valorUSD>0?'<span class="badge badge-usd">USD</span>':'<span class="badge badge-ars">ARS</span>';
-    return`<tr><td class="td-name">${h.mes}</td><td>${badge}</td><td>${usd>0?fUSD(usd):'—'}</td><td>${ars>0?fARS(ars):'—'}</td><td style="color:var(--text2)">${tcStr}</td><td>${equivCell}</td></tr>`;
+    return`<tr><td class="td-name">${h.mes}</td><td>${badge}</td><td>${usd>0?fUSD(usd):'—'}</td><td>${ars>0?fARS(ars):'—'}</td><td style="color:var(--text2)">${tcStr}</td><td>${arsConv}</td></tr>`;
   }).join('');
   document.getElementById('tabla-historico').innerHTML=`<table><thead><tr><th>Período</th><th>Fuente</th><th>Valor USD</th><th>Valor ARS</th><th>TC del momento</th><th>Equiv. USD calculado</th></tr></thead><tbody>${trows}</tbody></table>`;
   const all=[...S.activosA.map(a=>({...a,caja:'a'})),...S.activosPru.map(a=>({...a,caja:'pru'}))];
@@ -457,80 +364,49 @@ function renderCartera(){
   const acts=getActivos(),tot=acts.reduce((s,a)=>s+toUSD(a.actual,a.moneda,a.caja),0);
   const pcts=acts.map(a=>tot>0?toUSD(a.actual,a.moneda,a.caja)/tot*100:0);
   document.getElementById('leg-comp').innerHTML=acts.map((a,i)=>`<div class="legend-item"><div class="legend-dot" style="background:${COL[i%COL.length]}"></div>${a.nombre} ${pcts[i].toFixed(0)}%</div>`).join('');
-  dC('chart-comp');
-  CH['chart-comp']=new Chart(document.getElementById('chart-comp'),{type:'doughnut',data:{labels:acts.map(a=>a.nombre),datasets:[{data:pcts,backgroundColor:COL,borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw.toFixed(1)+'%'}}}}});
-  dC('chart-dist');
-  CH['chart-dist']=new Chart(document.getElementById('chart-dist'),{type:'bar',data:{labels:acts.map(a=>a.nombre),datasets:[{data:pcts,backgroundColor:COL,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw.toFixed(1)+'%'}}},scales:{y:{max:100,ticks:{callback:v=>v+'%'},grid:{color:'rgba(128,128,128,.08)'}},x:{grid:{display:false}}}}});
+  dC('chart-comp');CH['chart-comp']=new Chart(document.getElementById('chart-comp'),{type:'doughnut',data:{labels:acts.map(a=>a.nombre),datasets:[{data:pcts,backgroundColor:COL,borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw.toFixed(1)+'%'}}}}});
+  dC('chart-dist');CH['chart-dist']=new Chart(document.getElementById('chart-dist'),{type:'bar',data:{labels:acts.map(a=>a.nombre),datasets:[{data:pcts,backgroundColor:COL,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw.toFixed(1)+'%'}}},scales:{y:{max:100,ticks:{callback:v=>v+'%'},grid:{color:'rgba(128,128,128,.08)'}},x:{grid:{display:false}}}}});
   let rows=acts.map((a,i)=>`<tr><td><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${COL[i%COL.length]};margin-right:6px"></span><span class="td-name">${a.nombre}</span></td><td><span class="badge badge-caja-${a.caja}">${a.caja==='a'?'Caja A':'Caja Pru'}</span></td><td><span class="badge badge-${a.moneda.toLowerCase()}">${a.moneda}</span></td><td style="color:var(--text2)">${a.tipo||'—'}</td><td>${fMonto(a.invertido,a.moneda)}</td><td>${fMonto(a.actual,a.moneda)}</td><td class="${a.rend>=0?'pos':'neg'}">${a.rend>=0?'+':''}${a.rend.toFixed(1)}%</td><td>${pcts[i].toFixed(1)}%</td></tr>`).join('');
   document.getElementById('tabla-detalle').innerHTML=`<table><thead><tr><th>Activo</th><th>Caja</th><th>Moneda</th><th>Tipo</th><th>Invertido</th><th>Actual</th><th>Rend.</th><th>% Cartera</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
+
 function renderLiqForm(caja){
   const list=caja==='a'?S.liqA:S.liqPru,tcv=caja==='a'?S.tcA:S.tcPru,key=caja==='a'?'liqA':'liqPru';
   const cont=document.getElementById('liq-'+caja+'-form');cont.innerHTML='';
-  list.forEach((l,i)=>{
-    const r=document.createElement('div');r.className='form-row liq-row';
-    const eq=l.moneda==='ARS'?l.monto/tcv:l.monto;
-    r.innerHTML=`<input type="text" value="${l.desc}" placeholder="Descripción" oninput="S.${key}[${i}].desc=this.value"><select onchange="S.${key}[${i}].moneda=this.value;renderLiqForm('${caja}')"><option value="USD" ${l.moneda==='USD'?'selected':''}>USD</option><option value="ARS" ${l.moneda==='ARS'?'selected':''}>ARS</option></select><input type="number" value="${l.monto}" placeholder="0" onchange="S.${key}[${i}].monto=+this.value;renderLiqForm('${caja}')"><span class="equiv-display">${fUSD(eq)}</span><button class="btn-del" onclick="S.${key}.splice(${i},1);renderLiqForm('${caja}')">✕</button>`;
-    cont.appendChild(r);
-  });
+  list.forEach((l,i)=>{const r=document.createElement('div');r.className='form-row liq-row';const eq=l.moneda==='ARS'?l.monto/tcv:l.monto;r.innerHTML=`<input type="text" value="${l.desc}" placeholder="Descripción" oninput="S.${key}[${i}].desc=this.value"><select onchange="S.${key}[${i}].moneda=this.value;renderLiqForm('${caja}')"><option value="USD" ${l.moneda==='USD'?'selected':''}>USD</option><option value="ARS" ${l.moneda==='ARS'?'selected':''}>ARS</option></select><input type="number" value="${l.monto}" placeholder="0" onchange="S.${key}[${i}].monto=+this.value;renderLiqForm('${caja}')"><span class="equiv-display">${fUSD(eq)}</span><button class="btn-del" onclick="S.${key}.splice(${i},1);renderLiqForm('${caja}')">✕</button>`;cont.appendChild(r);});
 }
 function renderActForm(caja){
   const list=caja==='a'?S.activosA:S.activosPru,key=caja==='a'?'activosA':'activosPru';
   const cont=document.getElementById('act-'+caja+'-form');cont.innerHTML='';
-  list.forEach((a,i)=>{
-    const r=document.createElement('div');r.className='form-row act-row';
-    r.innerHTML=`<input type="text" value="${a.nombre}" placeholder="Nombre" oninput="S.${key}[${i}].nombre=this.value"><select onchange="S.${key}[${i}].moneda=this.value"><option value="USD" ${a.moneda==='USD'?'selected':''}>USD</option><option value="ARS" ${a.moneda==='ARS'?'selected':''}>ARS</option></select><input type="number" value="${a.invertido}" placeholder="0" onchange="S.${key}[${i}].invertido=+this.value;recalcRend('${caja}',${i})"><input type="number" value="${a.actual}" placeholder="0" onchange="S.${key}[${i}].actual=+this.value;recalcRend('${caja}',${i})"><input type="number" class="rend-ro" value="${a.rend.toFixed(1)}" readonly style="color:${a.rend>=0?'#1D9E75':'#E24B4A'}"><input type="text" value="${a.tipo||''}" placeholder="Tipo" oninput="S.${key}[${i}].tipo=this.value"><button class="btn-del" onclick="S.${key}.splice(${i},1);renderActForm('${caja}')">✕</button>`;
-    cont.appendChild(r);
-  });
+  list.forEach((a,i)=>{const r=document.createElement('div');r.className='form-row act-row';r.innerHTML=`<input type="text" value="${a.nombre}" placeholder="Nombre" oninput="S.${key}[${i}].nombre=this.value"><select onchange="S.${key}[${i}].moneda=this.value"><option value="USD" ${a.moneda==='USD'?'selected':''}>USD</option><option value="ARS" ${a.moneda==='ARS'?'selected':''}>ARS</option></select><input type="number" value="${a.invertido}" placeholder="0" onchange="S.${key}[${i}].invertido=+this.value;recalcRend('${caja}',${i})"><input type="number" value="${a.actual}" placeholder="0" onchange="S.${key}[${i}].actual=+this.value;recalcRend('${caja}',${i})"><input type="number" class="rend-ro" value="${a.rend.toFixed(1)}" readonly style="color:${a.rend>=0?'#1D9E75':'#E24B4A'}"><input type="text" value="${a.tipo||''}" placeholder="Tipo" oninput="S.${key}[${i}].tipo=this.value"><button class="btn-del" onclick="S.${key}.splice(${i},1);renderActForm('${caja}')">✕</button>`;cont.appendChild(r);});
 }
 function recalcRend(caja,i){const key=caja==='a'?'activosA':'activosPru';S[key][i].rend=S[key][i].invertido>0?(S[key][i].actual-S[key][i].invertido)/S[key][i].invertido*100:0;renderActForm(caja);}
 function renderHistForm(){
   const cont=document.getElementById('hist-form');cont.innerHTML='';
-  S.historico.forEach((h,i)=>{
-    const r=document.createElement('div');r.className='form-row hist-row';
-    const equiv=h.valorARS>0&&h.tc>0&&!h.valorUSD?fUSD(h.valorARS/h.tc):'—';
-    r.innerHTML=`<input type="text" value="${h.mes}" placeholder="Mar 2025" oninput="S.historico[${i}].mes=this.value"><input type="number" value="${h.valorUSD||0}" placeholder="0" onchange="S.historico[${i}].valorUSD=+this.value;renderHistForm()"><input type="number" value="${h.valorARS||0}" placeholder="0" onchange="S.historico[${i}].valorARS=+this.value;renderHistForm()"><input type="number" value="${h.tc||0}" placeholder="TC del mes" onchange="S.historico[${i}].tc=+this.value;renderHistForm()"><span class="equiv-display" style="font-size:12px;color:${equiv!=='—'?'var(--green)':'var(--text3)'}">${equiv}</span><button class="btn-del" onclick="S.historico.splice(${i},1);renderHistForm()">✕</button>`;
-    cont.appendChild(r);
-  });
+  S.historico.forEach((h,i)=>{const r=document.createElement('div');r.className='form-row hist-row';const equiv=h.valorARS>0&&h.tc>0?fUSD(h.valorARS/h.tc):'—';r.innerHTML=`<input type="text" value="${h.mes}" placeholder="Mar 2025" oninput="S.historico[${i}].mes=this.value"><input type="number" value="${h.valorUSD||0}" placeholder="0" onchange="S.historico[${i}].valorUSD=+this.value;renderHistForm()"><input type="number" value="${h.valorARS||0}" placeholder="0" onchange="S.historico[${i}].valorARS=+this.value;renderHistForm()"><input type="number" value="${h.tc||0}" placeholder="TC del mes" onchange="S.historico[${i}].tc=+this.value;renderHistForm()"><span class="equiv-display" style="font-size:12px;color:${equiv!=='—'?'var(--green)':'var(--text3)'}">${equiv}</span><button class="btn-del" onclick="S.historico.splice(${i},1);renderHistForm()">✕</button>`;cont.appendChild(r);});
 }
 function renderEditForm(){
   document.getElementById('tc-a').value=S.tcA;
   document.getElementById('tc-pru').value=S.tcPru;
   document.getElementById('nombre-informe-input').value=S.titulo||'';
-  renderLiqForm('a');renderLiqForm('pru');
-  renderActForm('a');renderActForm('pru');
-  renderHistForm();
+  renderLiqForm('a');renderLiqForm('pru');renderActForm('a');renderActForm('pru');renderHistForm();
 }
 function addLiq(c){(c==='a'?S.liqA:S.liqPru).push({desc:'',moneda:'USD',monto:0});renderLiqForm(c);}
 function addActivo(c){(c==='a'?S.activosA:S.activosPru).push({nombre:'',moneda:'USD',invertido:0,actual:0,rend:0,tipo:''});renderActForm(c);}
 function addHistorico(){S.historico.push({mes:'',valorUSD:0,valorARS:0,tc:0});renderHistForm();}
-function guardarYActualizar(){
+
+async function guardarYActualizar(){
   S.tcA=+document.getElementById('tc-a').value||1;
   S.tcPru=+document.getElementById('tc-pru').value||1;
-  guardarLocal();renderAll();showTab('resumen');
+  await guardarNube();
+  renderAll();
+  showTab('resumen');
 }
-function setFiltro(f){
-  filtro=f;
-  ['all','a','pru'].forEach(x=>{const b=document.getElementById('filtro-'+x);b.className='tab-caja';if(x===f)b.classList.add(x==='all'?'active-all':x==='a'?'active-a':'active-pru');});
-  renderAll(false);
-}
-function showTab(name){
-  ['resumen','historico','cartera','editar'].forEach((t,i)=>{
-    document.getElementById('tab-'+t).className=t===name?'sv':'sh';
-    document.querySelectorAll('.tab')[i].classList.toggle('active',t===name);
-  });
-  if(name==='editar')renderEditForm();
-  if(name==='historico')renderHistorico();
-}
-function renderAll(hist=true){
-  renderTitulo();
-  renderMetrics();renderFondos();renderMoneda();renderCaja();renderTablaPosicion();
-  if(hist)renderHistorico();
-  renderCartera();
-  document.getElementById('fecha-header').textContent='Generado el '+new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
-}
-cargarLocal();
-renderAll();
+function setFiltro(f){filtro=f;['all','a','pru'].forEach(x=>{const b=document.getElementById('filtro-'+x);b.className='tab-caja';if(x===f)b.classList.add(x==='all'?'active-all':x==='a'?'active-a':'active-pru');});renderAll(false);}
+function showTab(name){['resumen','historico','cartera','editar'].forEach((t,i)=>{document.getElementById('tab-'+t).className=t===name?'sv':'sh';document.querySelectorAll('.tab')[i].classList.toggle('active',t===name);});if(name==='editar')renderEditForm();if(name==='historico')renderHistorico();}
+function renderAll(hist=true){renderTitulo();renderMetrics();renderFondos();renderMoneda();renderCaja();renderTablaPosicion();if(hist)renderHistorico();renderCartera();document.getElementById('fecha-header').textContent='Generado el '+new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});}
+
+cargarNube();
 </script>
 </body>
 </html>
